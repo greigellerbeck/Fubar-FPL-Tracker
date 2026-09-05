@@ -1,0 +1,33 @@
+name: Update FPL Tracker
+
+on:
+  schedule:
+    # Every Tuesday at 06:00 UTC (after Monday night football has settled).
+    # Adjust the cron if you want it to run more/less often -- crontab.guru helps.
+    - cron: '0 6 * * 2'
+  workflow_dispatch: {}   # adds a manual "Run workflow" button on the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install requests
+
+      - run: python generate_site.py
+
+      - name: Commit and push if the page changed
+        run: |
+          git config user.name "fpl-tracker-bot"
+          git config user.email "actions@github.com"
+          git add docs/index.html
+          git diff --staged --quiet || git commit -m "Update tracker $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUBAR &mdash; FPL Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --turf-dark:#12352A; --turf-stripe:#1F5A44; --chalk:#F6F5F0; --chalk-dim:#D8DED8;
+    --amber:#E0A93B; --amber-dim:#F3D89A; --line:rgba(246,245,240,0.16);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--turf-dark);
+    background-image:repeating-linear-gradient(90deg, var(--turf-dark) 0 40px, var(--turf-stripe) 40px 80px);
+    font-family:'Work Sans', sans-serif; color:var(--chalk); min-height:100vh; padding:18px 12px 40px;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+  header{border-bottom:2px solid var(--line);padding-bottom:14px;margin-bottom:16px;display:flex;align-items:center;gap:16px;}
+  .logo{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;box-shadow:0 0 0 2px var(--amber);}
+  .header-text{flex:1;min-width:0;}
+  h1{font-family:'Oswald',sans-serif;font-weight:700;font-size:1.6rem;margin:0;}
+  .subtitle{font-size:0.82rem;color:var(--chalk-dim);margin-top:4px;}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums;}
+  th, td{padding:8px 10px;text-align:center;font-size:0.82rem;white-space:nowrap;border-bottom:1px solid var(--line);}
+  th{font-family:'Oswald',sans-serif;font-weight:600;font-size:0.78rem;color:var(--chalk-dim);background:var(--turf-dark);position:sticky;top:0;}
+  td.name-cell, th.name-cell{text-align:left;position:sticky;left:0;background:var(--turf-dark);z-index:2;box-shadow:2px 0 0 var(--line);min-width:150px;}
+  th.name-cell{z-index:3;}
+  .manager-name{font-weight:600;color:var(--chalk);}
+  .team-name{display:block;font-size:0.72rem;color:var(--chalk-dim);font-weight:400;}
+  tr:nth-child(even) td:not(.name-cell){background:rgba(246,245,240,0.03);}
+  tr:nth-child(even) td.name-cell{background:#153d2f;}
+  .subtotal-col{background:rgba(224,169,59,0.14);font-weight:600;color:var(--amber);}
+  tr:nth-child(even) .subtotal-col{background:rgba(224,169,59,0.20);}
+  .total-col{background:rgba(224,169,59,0.30);font-weight:700;color:var(--chalk);}
+  tr:nth-child(even) .total-col{background:rgba(224,169,59,0.36);}
+  .rank-col{color:var(--chalk-dim);font-weight:600;}
+  .rank-1 .rank-col{color:var(--amber);}
+  footer{margin-top:16px;font-size:0.76rem;color:var(--chalk-dim);line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="logo" src="logo.jpg" alt="League logo">
+    <div class="header-text">
+      <h1>FUBAR</h1>
+      <div class="subtitle">Net score = GW points minus transfer-cost hits &middot; every 4 GWs is its own competition</div>
+      <div class="subtitle">Last updated 2026-09-05 08:29 UTC</div>
+    </div>
+  </header>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th class="name-cell">Manager</th><th>GW1</th><th>GW2</th><th>GW3</th><th class="subtotal-col">GW1-3</th><th class="total-col">TOTAL</th></tr></thead>
+      <tbody><tr class="rank-1"><td class="name-cell"><span class="rank-col">1.</span> <span class="manager-name">Bruce Henderson</span><span class="team-name">Bruizer72</span></td><td>73</td><td>89</td><td>13</td><td class="subtotal-col">175</td><td class="total-col">175</td></tr><tr><td class="name-cell"><span class="rank-col">2.</span> <span class="manager-name">Huntley Harris</span><span class="team-name">Huntley's Team</span></td><td>29</td><td>105</td><td>17</td><td class="subtotal-col">151</td><td class="total-col">151</td></tr><tr><td class="name-cell"><span class="rank-col">3.</span> <span class="manager-name">Daryn Langley</span><span class="team-name">CunningLangus</span></td><td>46</td><td>102</td><td>0</td><td class="subtotal-col">148</td><td class="total-col">148</td></tr><tr><td class="name-cell"><span class="rank-col">4.</span> <span class="manager-name">Brad Palmer</span><span class="team-name">Chilipool</span></td><td>42</td><td>80</td><td>16</td><td class="subtotal-col">138</td><td class="total-col">138</td></tr><tr><td class="name-cell"><span class="rank-col">5.</span> <span class="manager-name">Scott McGuire</span><span class="team-name">MacFluffs</span></td><td>37</td><td>93</td><td>3</td><td class="subtotal-col">133</td><td class="total-col">133</td></tr><tr><td class="name-cell"><span class="rank-col">6.</span> <span class="manager-name">Greig Ellerbeck</span><span class="team-name">SpectaculArteta</span></td><td>59</td><td>75</td><td>-1</td><td class="subtotal-col">133</td><td class="total-col">133</td></tr><tr><td class="name-cell"><span class="rank-col">7.</span> <span class="manager-name">Fraser McAllister</span><span class="team-name">Foolham</span></td><td>38</td><td>77</td><td>16</td><td class="subtotal-col">131</td><td class="total-col">131</td></tr><tr><td class="name-cell"><span class="rank-col">8.</span> <span class="manager-name">Grant Gooch</span><span class="team-name">Ginger Devils</span></td><td>44</td><td>80</td><td>6</td><td class="subtotal-col">130</td><td class="total-col">130</td></tr><tr><td class="name-cell"><span class="rank-col">9.</span> <span class="manager-name">Andrew Sharp</span><span class="team-name">AIverton FC</span></td><td>49</td><td>75</td><td>0</td><td class="subtotal-col">124</td><td class="total-col">124</td></tr><tr><td class="name-cell"><span class="rank-col">10.</span> <span class="manager-name">Ryan Wilson</span><span class="team-name">Willo Warriors</span></td><td>31</td><td>30</td><td>14</td><td class="subtotal-col">75</td><td class="total-col">75</td></tr></tbody>
+    </table>
+  </div>
+  <footer>This page is regenerated automatically on a schedule by GitHub Actions, pulling live from the official FPL API.</footer>
+</div>
+</body>
+</html>

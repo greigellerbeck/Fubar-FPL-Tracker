@@ -122,9 +122,10 @@ def render_html(league_name, managers, max_gw, generated_at):
     --amber:#E0A93B; --amber-dim:#F3D89A; --line:rgba(246,245,240,0.16);
   }}
   *{{box-sizing:border-box;}}
-  body{{
-    margin:0; background:var(--turf-dark);
-    background-image:repeating-linear-gradient(90deg, var(--turf-dark) 0 40px, var(--turf-stripe) 40px 80px);
+    body{
+    margin:0; background:#181A1B;
+    font-family:'Work Sans', sans-serif; color:var(--chalk); min-height:100vh; padding:18px 12px 40px;
+  }
     font-family:'Work Sans', sans-serif; color:var(--chalk); min-height:100vh; padding:18px 12px 40px;
   }}
   .wrap{{max-width:960px;margin:0 auto;}}

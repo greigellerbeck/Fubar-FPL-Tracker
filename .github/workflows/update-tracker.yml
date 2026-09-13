@@ -2,9 +2,10 @@ name: Update FPL Tracker
 
 on:
   schedule:
-    # Every Tuesday at 06:00 UTC (after Monday night football has settled).
-    # Adjust the cron if you want it to run more/less often -- crontab.guru helps.
-    - cron: '0 6 * * 2'
+    # 22:00 UTC = 00:00 SAST (Johannesburg, UTC+2, no daylight saving) --
+    # i.e. runs right at midnight local time following Friday, Saturday,
+    # Sunday, and Monday night football (Fri=5, Sat=6, Sun=0, Mon=1).
+    - cron: '0 22 * * 0,1,5,6'
   workflow_dispatch: {}   # adds a manual "Run workflow" button on the Actions tab
 
 permissions:

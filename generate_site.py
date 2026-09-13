@@ -8,8 +8,7 @@ Run by the GitHub Actions workflow on a schedule -- see
 """
 
 import time
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone, timedelta
 
 import requests
 
@@ -88,7 +87,6 @@ def render_html(league_name, managers, max_gw, generated_at):
         start, end = b * 4 + 1, min(b * 4 + 4, max_gw)
         for gw in range(start, end + 1):
             header_cells.append(f"<th>GW{gw}</th>")
-        # Header changed here to display DOP1, DOP2, etc.
         header_cells.append(f'<th class="subtotal-col">DOP{b + 1}</th>')
     header_cells.append('<th class="total-col">TOTAL</th>')
 
@@ -109,7 +107,7 @@ def render_html(league_name, managers, max_gw, generated_at):
         cells.append(f'<td class="total-col">{m["running"]}</td>')
         body_rows.append(f"<tr{rank_class}>" + "".join(cells) + "</tr>")
 
-   return f"""<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -193,7 +191,8 @@ def main():
     if max_gw == 0:
         print("No completed gameweeks yet -- nothing to render.")
         return
-    generated_at = datetime.now(ZoneInfo("Africa/Johannesburg")).strftime("%Y-%m-%d %H:%M SAST")
+    sast_tz = timezone(timedelta(hours=2))
+    generated_at = datetime.now(sast_tz).strftime("%Y-%m-%d %H:%M SAST")
     html = render_html(league_name, managers, max_gw, generated_at)
 
     import os

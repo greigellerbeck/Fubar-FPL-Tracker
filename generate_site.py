@@ -9,6 +9,7 @@ Run by the GitHub Actions workflow on a schedule -- see
 
 import time
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -93,10 +94,9 @@ def render_html(league_name, managers, max_gw, generated_at):
     body_rows = []
     for idx, m in enumerate(rows_computed):
         rank_class = ' class="rank-1"' if idx == 0 else ""
-        flag = " \u26a0\ufe0f" if m["mismatch"] else ""
         cells = [
             f'<td class="name-cell"><span class="rank-col">{idx + 1}.</span> '
-            f'<span class="manager-name">{m["name"]}{flag}</span>'
+            f'<span class="manager-name">{m["name"]}</span>'
             f'<span class="team-name">{m["team"]}</span></td>'
         ]
         for b in range(num_blocks):
@@ -118,13 +118,12 @@ def render_html(league_name, managers, max_gw, generated_at):
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{{
-    --turf-dark:#12352A; --turf-stripe:#1F5A44; --chalk:#F6F5F0; --chalk-dim:#D8DED8;
+    --turf-dark:#0f221a; --chalk:#F6F5F0; --chalk-dim:#D8DED8;
     --amber:#E0A93B; --amber-dim:#F3D89A; --line:rgba(246,245,240,0.16);
   }}
   *{{box-sizing:border-box;}}
   body{{
     margin:0; background:var(--turf-dark);
-    background-image:repeating-linear-gradient(90deg, var(--turf-dark) 0 40px, var(--turf-stripe) 40px 80px);
     font-family:'Work Sans', sans-serif; color:var(--chalk); min-height:100vh; padding:18px 12px 40px;
   }}
   .wrap{{max-width:960px;margin:0 auto;}}
@@ -143,15 +142,15 @@ def render_html(league_name, managers, max_gw, generated_at):
   th.total-col, td.total-col{{width:58px;}}
   td.name-cell, th.name-cell{{
     text-align:left;position:sticky;left:0;background:var(--turf-dark);z-index:2;
-    box-shadow:2px 0 4px rgba(0,0,0,0.35);width:98px;padding-left:8px;
+    box-shadow:2px 0 4px rgba(0,0,0,0.35);width:135px;padding-left:8px;padding-right:8px;
   }}
   th.name-cell{{z-index:3;}}
-  .manager-name{{font-weight:600;color:var(--chalk);display:block;overflow:hidden;text-overflow:ellipsis;}}
-  .team-name{{display:block;font-size:0.64rem;color:var(--chalk-dim);font-weight:400;overflow:hidden;text-overflow:ellipsis;}}
+  .manager-name{{font-weight:600;color:var(--chalk);display:block;overflow:hidden;text-overflow:ellipsis;white-space:normal;line-height:1.2;}}
+  .team-name{{display:block;font-size:0.64rem;color:var(--chalk-dim);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:normal;line-height:1.2;margin-top:2px;}}
   .scroll-hint{{font-size:0.72rem;color:var(--amber-dim);text-align:center;padding:6px 0 0;display:none;}}
   @media (max-width:480px){{
     .scroll-hint{{display:block;}}
-    td.name-cell, th.name-cell{{width:84px;}}
+    td.name-cell, th.name-cell{{width:125px;}}
   }}
   tr:nth-child(even) td:not(.name-cell){{background:rgba(246,245,240,0.03);}}
   tr:nth-child(even) td.name-cell{{background:#153d2f;}}
@@ -193,7 +192,7 @@ def main():
     if max_gw == 0:
         print("No completed gameweeks yet -- nothing to render.")
         return
-    generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    generated_at = datetime.now(ZoneInfo("Africa/Johannesburg")).strftime("%Y-%m-%d %H:%M SAST")
     html = render_html(league_name, managers, max_gw, generated_at)
 
     import os

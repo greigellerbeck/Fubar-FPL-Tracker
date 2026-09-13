@@ -1,12 +1,22 @@
+"""
+Generates docs/index.html for the FPL Mini-League Tracker.
+Run by the GitHub Actions workflow on a schedule -- see
+.github/workflows/update-tracker.yml. Can also be run locally:
+
+    pip install requests
+    python generate_site.py
+"""
+
 import time
 from datetime import datetime, timezone
-import os
+
 import requests
 
 LEAGUE_ID = 970639
 BASE = "https://fantasy.premierleague.com/api"
 HEADERS = {"User-Agent": "Mozilla/5.0 (fpl-tracker-site-generator)"}
 OUTPUT_PATH = "docs/index.html"
+
 
 def get_standings(league_id):
     entries, page, league_name = [], 1, ""
@@ -27,6 +37,7 @@ def get_standings(league_id):
         time.sleep(0.3)
     return league_name, entries
 
+
 def get_history(entry_id):
     resp = requests.get(f"{BASE}/entry/{entry_id}/history/", headers=HEADERS, timeout=20)
     resp.raise_for_status()
@@ -35,6 +46,7 @@ def get_history(entry_id):
     for gw in data.get("current", []):
         net_by_gw[gw["event"]] = gw["points"] - gw.get("event_transfers_cost", 0)
     return net_by_gw
+
 
 def fetch_all(league_id):
     league_name, entries = get_standings(league_id)
@@ -53,8 +65,10 @@ def fetch_all(league_id):
         time.sleep(0.3)
     return league_name, managers, max_gw
 
+
 def render_html(league_name, managers, max_gw, generated_at):
     num_blocks = (max_gw + 3) // 4
+
     rows_computed = []
     for m in managers:
         block_subtotals = []
@@ -79,7 +93,7 @@ def render_html(league_name, managers, max_gw, generated_at):
     body_rows = []
     for idx, m in enumerate(rows_computed):
         rank_class = ' class="rank-1"' if idx == 0 else ""
-        flag = " ⚠️" if m["mismatch"] else ""
+        flag = " \u26a0\ufe0f" if m["mismatch"] else ""
         cells = [
             f'<td class="name-cell"><span class="rank-col">{idx + 1}.</span> '
             f'<span class="manager-name">{m["name"]}{flag}</span>'
@@ -94,14 +108,14 @@ def render_html(league_name, managers, max_gw, generated_at):
         cells.append(f'<td class="total-col">{m["running"]}</td>')
         body_rows.append(f"<tr{rank_class}>" + "".join(cells) + "</tr>")
 
-    html_content = f"""<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{league_name} &mdash; FPL Tracker</title>
-<link rel="preconnect" href="https://googleapis.com">
-<link href="https://googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{{
     --turf-dark:#12352A; --turf-stripe:#1F5A44; --chalk:#F6F5F0; --chalk-dim:#D8DED8;
@@ -109,7 +123,8 @@ def render_html(league_name, managers, max_gw, generated_at):
   }}
   *{{box-sizing:border-box;}}
   body{{
-    margin:0; background:#12352A;
+    margin:0; background:var(--turf-dark);
+    background-image:repeating-linear-gradient(90deg, var(--turf-dark) 0 40px, var(--turf-stripe) 40px 80px);
     font-family:'Work Sans', sans-serif; color:var(--chalk); min-height:100vh; padding:18px 12px 40px;
   }}
   .wrap{{max-width:960px;margin:0 auto;}}
@@ -119,13 +134,25 @@ def render_html(league_name, managers, max_gw, generated_at):
   h1{{font-family:'Oswald',sans-serif;font-weight:700;font-size:1.6rem;margin:0;}}
   .subtitle{{font-size:0.82rem;color:var(--chalk-dim);margin-top:4px;}}
   .table-scroll{{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);}}
-  table{{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums;}}
-  th, td{{padding:8px 10px;text-align:center;font-size:0.82rem;white-space:nowrap;border-bottom:1px solid var(--line);}}
-  th{{font-family:'Oswald',sans-serif;font-weight:600;font-size:0.78rem;color:var(--chalk-dim);background:var(--turf-dark);position:sticky;top:0;}}
-  td.name-cell, th.name-cell{{text-align:left;position:sticky;left:0;background:var(--turf-dark);z-index:2;box-shadow:2px 0 0 var(--line);min-width:150px;}}
+  table{{border-collapse:collapse;width:100%;table-layout:fixed;font-variant-numeric:tabular-nums;}}
+  th, td{{padding:7px 4px;text-align:center;font-size:0.78rem;white-space:nowrap;border-bottom:1px solid var(--line);overflow:hidden;text-overflow:ellipsis;}}
+  th{{font-family:'Oswald',sans-serif;font-weight:600;font-size:0.74rem;color:var(--chalk-dim);background:var(--turf-dark);position:sticky;top:0;}}
+  th:not(.name-cell):not(.subtotal-col):not(.total-col),
+  td:not(.name-cell):not(.subtotal-col):not(.total-col){{width:42px;}}
+  th.subtotal-col, td.subtotal-col{{width:54px;}}
+  th.total-col, td.total-col{{width:58px;}}
+  td.name-cell, th.name-cell{{
+    text-align:left;position:sticky;left:0;background:var(--turf-dark);z-index:2;
+    box-shadow:2px 0 4px rgba(0,0,0,0.35);width:98px;padding-left:8px;
+  }}
   th.name-cell{{z-index:3;}}
-  .manager-name{{font-weight:600;color:var(--chalk);}}
-  .team-name{{display:block;font-size:0.72rem;color:var(--chalk-dim);font-weight:400;}}
+  .manager-name{{font-weight:600;color:var(--chalk);display:block;overflow:hidden;text-overflow:ellipsis;}}
+  .team-name{{display:block;font-size:0.64rem;color:var(--chalk-dim);font-weight:400;overflow:hidden;text-overflow:ellipsis;}}
+  .scroll-hint{{font-size:0.72rem;color:var(--amber-dim);text-align:center;padding:6px 0 0;display:none;}}
+  @media (max-width:480px){{
+    .scroll-hint{{display:block;}}
+    td.name-cell, th.name-cell{{width:84px;}}
+  }}
   tr:nth-child(even) td:not(.name-cell){{background:rgba(246,245,240,0.03);}}
   tr:nth-child(even) td.name-cell{{background:#153d2f;}}
   .subtotal-col{{background:rgba(224,169,59,0.14);font-weight:600;color:var(--amber);}}
@@ -149,15 +176,16 @@ def render_html(league_name, managers, max_gw, generated_at):
   </header>
   <div class="table-scroll">
     <table>
-      <thead><tr>{"".join(header_cells)}</tr></thead>
-      <tbody>{"".join(body_rows)}</tbody>
+      <thead><tr>{''.join(header_cells)}</tr></thead>
+      <tbody>{''.join(body_rows)}</tbody>
     </table>
   </div>
+  <div class="scroll-hint">&larr; swipe to see all gameweeks &rarr;</div>
   <footer>This page is regenerated automatically on a schedule by GitHub Actions, pulling live from the official FPL API.</footer>
 </div>
 </body>
 </html>"""
-    return html_content
+
 
 def main():
     print(f"Fetching league {LEAGUE_ID}...")
@@ -167,10 +195,13 @@ def main():
         return
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     html = render_html(league_name, managers, max_gw, generated_at)
+
+    import os
     os.makedirs("docs", exist_ok=True)
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         f.write(html)
     print(f"Wrote {OUTPUT_PATH}")
+
 
 if __name__ == "__main__":
     main()

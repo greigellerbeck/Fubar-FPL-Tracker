@@ -88,7 +88,8 @@ def render_html(league_name, managers, max_gw, generated_at):
         start, end = b * 4 + 1, min(b * 4 + 4, max_gw)
         for gw in range(start, end + 1):
             header_cells.append(f"<th>GW{gw}</th>")
-        header_cells.append(f'<th class="subtotal-col">GW{start}-{end}</th>')
+        # Header changed here to display DOP1, DOP2, etc.
+        header_cells.append(f'<th class="subtotal-col">DOP{b + 1}</th>')
     header_cells.append('<th class="total-col">TOTAL</th>')
 
     body_rows = []

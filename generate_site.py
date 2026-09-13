@@ -109,12 +109,12 @@ def render_html(league_name, managers, max_gw, generated_at):
         cells.append(f'<td class="total-col">{m["running"]}</td>')
         body_rows.append(f"<tr{rank_class}>" + "".join(cells) + "</tr>")
 
-    return f"""<!DOCTYPE html>
+   return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{league_name} &mdash; FPL Tracker</title>
+<title>FUBAR FPL DOP TRACKER</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -169,8 +169,8 @@ def render_html(league_name, managers, max_gw, generated_at):
   <header>
     <img class="logo" src="logo.jpg" alt="League logo">
     <div class="header-text">
-      <h1>{league_name}</h1>
-      <div class="subtitle">Net score = GW points minus transfer-cost hits &middot; every 4 GWs is its own competition</div>
+      <h1>FUBAR FPL DOP TRACKER</h1>
+      <div class="subtitle">Nett GW score (GW pts minus transfer-cost hits) &middot; Dop for lowest pts every 4 gameweeks</div>
       <div class="subtitle">Last updated {generated_at}</div>
     </div>
   </header>

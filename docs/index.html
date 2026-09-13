@@ -8,13 +8,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --turf-dark:#12352A; --turf-stripe:#1F5A44; --chalk:#F6F5F0; --chalk-dim:#D8DED8;
+    --turf-dark:#0f221a; --chalk:#F6F5F0; --chalk-dim:#D8DED8;
     --amber:#E0A93B; --amber-dim:#F3D89A; --line:rgba(246,245,240,0.16);
   }
   *{box-sizing:border-box;}
   body{
     margin:0; background:var(--turf-dark);
-    background-image:repeating-linear-gradient(90deg, var(--turf-dark) 0 40px, var(--turf-stripe) 40px 80px);
     font-family:'Work Sans', sans-serif; color:var(--chalk); min-height:100vh; padding:18px 12px 40px;
   }
   .wrap{max-width:960px;margin:0 auto;}
@@ -33,15 +32,15 @@
   th.total-col, td.total-col{width:58px;}
   td.name-cell, th.name-cell{
     text-align:left;position:sticky;left:0;background:var(--turf-dark);z-index:2;
-    box-shadow:2px 0 4px rgba(0,0,0,0.35);width:98px;padding-left:8px;
+    box-shadow:2px 0 4px rgba(0,0,0,0.35);width:135px;padding-left:8px;padding-right:8px;
   }
   th.name-cell{z-index:3;}
-  .manager-name{font-weight:600;color:var(--chalk);display:block;overflow:hidden;text-overflow:ellipsis;}
-  .team-name{display:block;font-size:0.64rem;color:var(--chalk-dim);font-weight:400;overflow:hidden;text-overflow:ellipsis;}
+  .manager-name{font-weight:600;color:var(--chalk);display:block;overflow:hidden;text-overflow:ellipsis;white-space:normal;line-height:1.2;}
+  .team-name{display:block;font-size:0.64rem;color:var(--chalk-dim);font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:normal;line-height:1.2;margin-top:2px;}
   .scroll-hint{font-size:0.72rem;color:var(--amber-dim);text-align:center;padding:6px 0 0;display:none;}
   @media (max-width:480px){
     .scroll-hint{display:block;}
-    td.name-cell, th.name-cell{width:84px;}
+    td.name-cell, th.name-cell{width:125px;}
   }
   tr:nth-child(even) td:not(.name-cell){background:rgba(246,245,240,0.03);}
   tr:nth-child(even) td.name-cell{background:#153d2f;}
@@ -61,13 +60,13 @@
     <div class="header-text">
       <h1>FUBAR</h1>
       <div class="subtitle">Net score = GW points minus transfer-cost hits &middot; every 4 GWs is its own competition</div>
-      <div class="subtitle">Last updated 2026-09-13 16:24 UTC</div>
+      <div class="subtitle">Last updated 2026-09-13 18:43 SAST</div>
     </div>
   </header>
   <div class="table-scroll">
     <table>
       <thead><tr><th class="name-cell">Manager</th><th>GW1</th><th>GW2</th><th>GW3</th><th>GW4</th><th class="subtotal-col">GW1-4</th><th class="total-col">TOTAL</th></tr></thead>
-      <tbody><tr class="rank-1"><td class="name-cell"><span class="rank-col">1.</span> <span class="manager-name">Bruce Henderson ⚠️</span><span class="team-name">Bruizer72</span></td><td>73</td><td>89</td><td>69</td><td>40</td><td class="subtotal-col">271</td><td class="total-col">271</td></tr><tr><td class="name-cell"><span class="rank-col">2.</span> <span class="manager-name">Daryn Langley ⚠️</span><span class="team-name">CunningLangus</span></td><td>46</td><td>102</td><td>65</td><td>51</td><td class="subtotal-col">264</td><td class="total-col">264</td></tr><tr><td class="name-cell"><span class="rank-col">3.</span> <span class="manager-name">Grant Gooch ⚠️</span><span class="team-name">Ginger Devils</span></td><td>44</td><td>80</td><td>36</td><td>63</td><td class="subtotal-col">223</td><td class="total-col">223</td></tr><tr><td class="name-cell"><span class="rank-col">4.</span> <span class="manager-name">Brad Palmer ⚠️</span><span class="team-name">Chilipool</span></td><td>42</td><td>80</td><td>65</td><td>34</td><td class="subtotal-col">221</td><td class="total-col">221</td></tr><tr><td class="name-cell"><span class="rank-col">5.</span> <span class="manager-name">Greig Ellerbeck ⚠️</span><span class="team-name">SpectaculArteta</span></td><td>59</td><td>75</td><td>35</td><td>45</td><td class="subtotal-col">214</td><td class="total-col">214</td></tr><tr><td class="name-cell"><span class="rank-col">6.</span> <span class="manager-name">Huntley Harris ⚠️</span><span class="team-name">Huntley's Team</span></td><td>29</td><td>105</td><td>42</td><td>24</td><td class="subtotal-col">200</td><td class="total-col">200</td></tr><tr><td class="name-cell"><span class="rank-col">7.</span> <span class="manager-name">Fraser McAllister ⚠️</span><span class="team-name">Foolham</span></td><td>38</td><td>77</td><td>50</td><td>29</td><td class="subtotal-col">194</td><td class="total-col">194</td></tr><tr><td class="name-cell"><span class="rank-col">8.</span> <span class="manager-name">Scott McGuire ⚠️</span><span class="team-name">MacFluffs</span></td><td>37</td><td>93</td><td>45</td><td>17</td><td class="subtotal-col">192</td><td class="total-col">192</td></tr><tr><td class="name-cell"><span class="rank-col">9.</span> <span class="manager-name">Andrew Sharp ⚠️</span><span class="team-name">AIverton FC</span></td><td>49</td><td>75</td><td>38</td><td>26</td><td class="subtotal-col">188</td><td class="total-col">188</td></tr><tr><td class="name-cell"><span class="rank-col">10.</span> <span class="manager-name">Ryan Wilson ⚠️</span><span class="team-name">Willo Warriors</span></td><td>31</td><td>30</td><td>53</td><td>23</td><td class="subtotal-col">137</td><td class="total-col">137</td></tr></tbody>
+      <tbody><tr class="rank-1"><td class="name-cell"><span class="rank-col">1.</span> <span class="manager-name">Bruce Henderson</span><span class="team-name">Bruizer72</span></td><td>73</td><td>89</td><td>69</td><td>40</td><td class="subtotal-col">271</td><td class="total-col">271</td></tr><tr><td class="name-cell"><span class="rank-col">2.</span> <span class="manager-name">Daryn Langley</span><span class="team-name">CunningLangus</span></td><td>46</td><td>102</td><td>65</td><td>51</td><td class="subtotal-col">264</td><td class="total-col">264</td></tr><tr><td class="name-cell"><span class="rank-col">3.</span> <span class="manager-name">Grant Gooch</span><span class="team-name">Ginger Devils</span></td><td>44</td><td>80</td><td>36</td><td>63</td><td class="subtotal-col">223</td><td class="total-col">223</td></tr><tr><td class="name-cell"><span class="rank-col">4.</span> <span class="manager-name">Brad Palmer</span><span class="team-name">Chilipool</span></td><td>42</td><td>80</td><td>65</td><td>34</td><td class="subtotal-col">221</td><td class="total-col">221</td></tr><tr><td class="name-cell"><span class="rank-col">5.</span> <span class="manager-name">Greig Ellerbeck</span><span class="team-name">SpectaculArteta</span></td><td>59</td><td>75</td><td>35</td><td>45</td><td class="subtotal-col">214</td><td class="total-col">214</td></tr><tr><td class="name-cell"><span class="rank-col">6.</span> <span class="manager-name">Huntley Harris</span><span class="team-name">Huntley's Team</span></td><td>29</td><td>105</td><td>42</td><td>24</td><td class="subtotal-col">200</td><td class="total-col">200</td></tr><tr><td class="name-cell"><span class="rank-col">7.</span> <span class="manager-name">Fraser McAllister</span><span class="team-name">Foolham</span></td><td>38</td><td>77</td><td>50</td><td>29</td><td class="subtotal-col">194</td><td class="total-col">194</td></tr><tr><td class="name-cell"><span class="rank-col">8.</span> <span class="manager-name">Scott McGuire</span><span class="team-name">MacFluffs</span></td><td>37</td><td>93</td><td>45</td><td>17</td><td class="subtotal-col">192</td><td class="total-col">192</td></tr><tr><td class="name-cell"><span class="rank-col">9.</span> <span class="manager-name">Andrew Sharp</span><span class="team-name">AIverton FC</span></td><td>49</td><td>75</td><td>38</td><td>26</td><td class="subtotal-col">188</td><td class="total-col">188</td></tr><tr><td class="name-cell"><span class="rank-col">10.</span> <span class="manager-name">Ryan Wilson</span><span class="team-name">Willo Warriors</span></td><td>31</td><td>30</td><td>53</td><td>23</td><td class="subtotal-col">137</td><td class="total-col">137</td></tr></tbody>
     </table>
   </div>
   <div class="scroll-hint">&larr; swipe to see all gameweeks &rarr;</div>

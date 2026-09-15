@@ -13,42 +13,50 @@ from datetime import datetime, timezone, timedelta
 import requests
 
 LEAGUE_ID = 970639
-# UPDATED: Routes calls via the designated data endpoint subdomain
 BASE = "https://fantasy.premierleague.com/api"
-HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+
+# ENHANCED: Full browser identity parameters to bypass Cloudflare/API data center blocks
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Origin": "https://fantasy.premierleague.com",
+    "Referer": "https://fantasy.premierleague.com/"
+}
 OUTPUT_PATH = "docs/index.html"
 
 
 def get_standings(league_id):
     entries, page, league_name = [], 1, ""
+    # Create a persistent session instance to maintain connection verification
+    session = requests.Session()
+    session.headers.update(HEADERS)
+    
     while True:
         url = f"{BASE}/leagues-classic/{league_id}/standings/"
-        print(f"Fetching standings from: {url} (Page {page})")
-        resp = requests.get(
-            url,
-            params={"page_standings": page},
-            headers=HEADERS,
-            timeout=20,
-        )
+        print(f"Connecting to FPL Data Engine: {url} (Page {page})")
+        
+        resp = session.get(url, params={"page_standings": page}, timeout=20)
         
         if resp.status_code != 200:
-            print(f"ERROR: API returned status {resp.status_code}")
-            print(f"Response snippet: {resp.text[:300]}")
+            print(f"CRITICAL: Connection rejected by FPL Server (Status {resp.status_code})")
+            print(f"Server Log Details: {resp.text[:500]}")
             resp.raise_for_status()
             
         data = resp.json()
         league_name = data["league"]["name"]
         entries.extend(data["standings"]["results"])
+        
         if not data["standings"]["has_next"]:
             break
         page += 1
-        time.sleep(0.5)
+        time.sleep(1.0) # Increased buffer delay to respect API threshold rates
     return league_name, entries
 
 
-def get_history(entry_id):
+def get_history(session, entry_id):
     url = f"{BASE}/entry/{entry_id}/history/"
-    resp = requests.get(url, headers=HEADERS, timeout=20)
+    resp = session.get(url, timeout=20)
     resp.raise_for_status()
     data = resp.json()
     
@@ -63,12 +71,17 @@ def get_history(entry_id):
 
 
 def fetch_all(league_id):
+    session = requests.Session()
+    session.headers.update(HEADERS)
+    
     league_name, entries = get_standings(league_id)
     managers, max_gw = [], 0
+    
+    print(f"Found {len(entries)} managers. Fetching individual entry histories...")
     for i, e in enumerate(entries):
-        print(f"  {i + 1}/{len(entries)}: {e['player_name']}")
+        print(f"  [{i + 1}/{len(entries)}] Processing: {e['player_name']}")
         try:
-            gw_data = get_history(e["entry"])
+            gw_data = get_history(session, e["entry"])
             if gw_data:
                 max_gw = max(max_gw, max(gw_data.keys()))
             managers.append({
@@ -78,8 +91,14 @@ def fetch_all(league_id):
                 "gw_data": gw_data,
             })
         except Exception as err:
-            print(f"  Warning: Could not fetch history for manager {e['player_name']}: {err}")
-        time.sleep(0.5)
+            print(f"  Warning: Skipping history download for {e['player_name']}: {err}")
+            managers.append({
+                "name": e["player_name"],
+                "team": e["entry_name"],
+                "official_total": e["total"],
+                "gw_data": {},
+            })
+        time.sleep(1.0) # Safe spacing spacing interval between data loops
     return league_name, managers, max_gw
 
 
@@ -205,33 +224,3 @@ def render_html(league_name, managers, max_gw, generated_at):
     <img src="https://skynet.be" class="logo" alt="FUBAR Logo" onerror="this.style.display='none'">
     <div class="header-text">
       <h1>{league_name.upper()}</h1>
-      <div class="subtitle">Nett GW score (GW pts minus transfer-cost hits) &middot; Dop for lowest pts every 4 gameweeks<br>Last updated {generated_at}</div>
-    </div>
-  </header>
-  
-  <div class="table-scroll">
-    <table>
-      <thead>
-        <tr>{"".join(header_cells)}</tr>
-      </thead>
-      <tbody>
-        {"".join(body_rows)}
-      </tbody>
-    </table>
-  </div>
-  <div class="scroll-hint">&larr; Scroll horizontally to view all Gameweeks &rarr;</div>
-</div>
-</body>
-</html>"""
-
-
-def main():
-    print(f"Starting tracking collection for Classic League ID: {LEAGUE_ID}")
-    
-    sast_now = datetime.now(timezone.utc) + timedelta(hours=2)
-    generated_at_str = sast_now.strftime("%Y-%m-%d %H:%M SAST")
-    
-    try:
-        league_name, managers, max_gw = fetch_all(LEAGUE_ID)
-        html_content = render_html(league_name, managers, max_gw, generated_at_str)
-        

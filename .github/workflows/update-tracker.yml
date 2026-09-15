@@ -2,8 +2,8 @@ name: Update FPL Tracker
 
 on:
   schedule:
-    # Runs daily at 22:00 UTC (00:00 SAST / Midnight South Africa time)
-    - cron: '0 22 * * *'
+    # Shifted to 22:05 UTC (00:05 SAST) to avoid high-traffic cron delays
+    - cron: '5 22 * * *'
   workflow_dispatch: # Allows manual trigger whenever you want
 
 jobs:
@@ -31,4 +31,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/index.html
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update FPL tracker [skip ci]" && git push)
+          # Removed [skip ci] to prevent scheduler drops
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update FPL tracker" && git push)

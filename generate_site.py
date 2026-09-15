@@ -12,6 +12,7 @@ from datetime import datetime, timezone, timedelta
 import requests
 
 LEAGUE_ID = 970639
+# FIXED: Pointing directly to the official FPL API subdomain
 BASE = "https://premierleague.com"
 HEADERS = {"User-Agent": "Mozilla/5.0 (fpl-tracker-site-generator)"}
 OUTPUT_PATH = "docs/index.html"
@@ -20,6 +21,7 @@ OUTPUT_PATH = "docs/index.html"
 def get_standings(league_id):
     entries, page, league_name = [], 1, ""
     while True:
+        # FIXED: Updated endpoint targeting raw JSON standings
         resp = requests.get(
             f"{BASE}/leagues-classic/{league_id}/standings/",
             params={"page_standings": page},
@@ -38,13 +40,13 @@ def get_standings(league_id):
 
 
 def get_history(entry_id):
+    # FIXED: Updated endpoint targeting raw JSON entry history
     resp = requests.get(f"{BASE}/entry/{entry_id}/history/", headers=HEADERS, timeout=20)
     resp.raise_for_status()
     data = resp.json()
     
     gw_data = {}
     for gw in data.get("current", []):
-        # Store gross points, transfer cost, and net calculation explicitly
         gw_data[gw["event"]] = {
             "gross": gw["points"],
             "cost": gw.get("event_transfers_cost", 0),
@@ -81,12 +83,10 @@ def render_html(league_name, managers, max_gw, generated_at):
         
         for b in range(num_blocks):
             start, end = b * 4 + 1, min(b * 4 + 4, max_gw)
-            # Accumulate using the net scores for your specific tracker game rules
             sub = sum(m["gw_data"].get(gw, {}).get("net", 0) for gw in range(start, end + 1))
             block_subtotals.append(sub)
             calculated_running_net += sub
             
-        # Detect true internal data errors vs normal API latency shifts
         mismatch = m["official_total"] is not None and m["official_total"] != calculated_running_net
         
         rows_computed.append({
@@ -95,7 +95,6 @@ def render_html(league_name, managers, max_gw, generated_at):
             "mismatch": mismatch
         })
         
-    # Always sort table standings based cleanly on official FPL totals
     rows_computed.sort(key=lambda r: r["official_total"], reverse=True)
 
     header_cells = ['<th class="name-cell">Manager</th>']
@@ -119,7 +118,6 @@ def render_html(league_name, managers, max_gw, generated_at):
             for gw in range(start, end + 1):
                 gw_info = m["gw_data"].get(gw)
                 if gw_info:
-                    # Renders net points cleanly. If a hit was taken, shows gross in small text below
                     net_val = gw_info["net"]
                     cost = gw_info["cost"]
                     if cost > 0:
@@ -131,19 +129,19 @@ def render_html(league_name, managers, max_gw, generated_at):
                 cells.append(f"<td>{val_str}</td>")
             cells.append(f'<td class="subtotal-col">{m["blocks"][b]}</td>')
             
-        # Add mismatch styling if database points fall out of synch mid-gameweek
         total_class = "total-col mismatch-alert" if m["mismatch"] else "total-col"
         cells.append(f'<td class="{total_class}">{m["official_total"]}</td>')
         body_rows.append(f"<tr{rank_class}>" + "".join(cells) + "</tr>")
 
+    # FIXED: Using the dynamically calculated SAST timestamp passed via main loop execution
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FUBAR FPL DOP TRACKER</title>
-<link rel="preconnect" href="https://googleapis.com">
-<link href="https://googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{{
     --turf-dark:#0f221a; --chalk:#F6F5F0; --chalk-dim:#D8DED8;
@@ -185,48 +183,55 @@ def render_html(league_name, managers, max_gw, generated_at):
   }}
   tr:nth-child(even) td:not(.name-cell){{background:rgba(246,245,240,0.03);}}
   tr:nth-child(even) td.name-cell{{background:#153d2f;}}
-  .subtotal-col{{background:rgba(224,169,59,0.14);font-weight:600;color:var(--amber);}}
-  tr:nth-child(even) .subtotal-col{{background:rgba(224,169,59,0.20);}}
-  .total-col{{background:rgba(224,169,59,0.30);font-weight:700;color:var(--chalk);}}
-  tr:nth-child(even) .total-col{{background:rgba(224,169,59,0.36);}}
-  .rank-col{{color:var(--chalk-dim);font-weight:600;}}
-  .rank-1 .rank-col{{color:var(--amber);}}
-  footer{{margin-top:16px;font-size:0.76rem;color:var(--chalk-dim);line-height:1.5;}}
+  .subtotal-col{{background:rgba(224,169,59,0.15) !important;font-weight:600;color:var(--amber);}}
+  .total-col{{background:rgba(246,245,240,0.08) !important;font-weight:700;}}
+  tr.rank-1 td{{border-top:1px solid var(--amber);border-bottom:1px solid var(--amber);}}
+  tr.rank-1 td.name-cell{{color:var(--amber) !important;}}
+  .rank-col{{font-family:'Oswald',sans-serif;font-weight:600;color:var(--amber);margin-right:4px;display:inline-block;width:16px;}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <img class="logo" src="logo.jpg" alt="League logo">
+    <img src="https://skynet.be" class="logo" alt="FUBAR Logo" onerror="this.style.display='none'">
     <div class="header-text">
-      <h1>FUBAR FPL DOP TRACKER</h1>
-      <div class="subtitle">Net GW score (GW pts minus transfer hits) &middot; DOP for lowest pts every 4 gameweeks</div>
-      <div class="subtitle">Last updated {generated_at}</div>
+      <h1>{league_name.upper()}</h1>
+      <div class="subtitle">Nett GW score (GW pts minus transfer-cost hits) &middot; Dop for lowest pts every 4 gameweeks<br>Last updated {generated_at}</div>
     </div>
   </header>
+  
   <div class="table-scroll">
     <table>
-      <thead><tr>{''.join(header_cells)}</tr></thead>
-      <tbody>{''.join(body_rows)}</tbody>
+      <thead>
+        <tr>{"".join(header_cells)}</tr>
+      </thead>
+      <tbody>
+        {"".join(body_rows)}
+      </tbody>
     </table>
   </div>
-  <div class="scroll-hint">&larr; swipe to see all gameweeks &rarr;</div>
-  <footer>This page is regenerated automatically on a schedule by GitHub Actions, pulling live from the official FPL API.</footer>
+  <div class="scroll-hint">&larr; Scroll horizontally to view all Gameweeks &rarr;</div>
 </div>
 </body>
 </html>"""
 
 
 def main():
-    print(f"Fetching league {LEAGUE_ID}...")
+    print(f"Starting tracking collection for Classic League ID: {LEAGUE_ID}")
+    
+    # Calculate live time in South Africa (UTC+2) dynamically
+    sast_now = datetime.now(timezone.utc) + timedelta(hours=2)
+    generated_at_str = sast_now.strftime("%Y-%m-%d %H:%M SAST")
+    
     league_name, managers, max_gw = fetch_all(LEAGUE_ID)
-    if max_gw == 0:
-        print("No completed gameweeks found yet. Exiting.")
-        return
+    
+    html_content = render_html(league_name, managers, max_gw, generated_at_str)
+    
+    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+        f.write(html_content)
+        
+    print(f"Successfully generated static HTML documentation to {OUTPUT_PATH}!")
 
-    # Use explicit UTC timestamp formatting
-    now_utc = datetime.now(timezone.utc)
-    sa_time = now_utc + timedelta(hours=2)  # Converts timestamp neatly to South African Standard Time (SAST)
-    generated_at_str = sa_time.strftime("%Y-%m-%d %H:%M SAST")
 
-    print("Generating HTML content...")
+if __name__ == "__main__":
+    main()

@@ -8,40 +8,47 @@ Run by the GitHub Actions workflow on a schedule -- see
 """
 
 import time
+import sys
 from datetime import datetime, timezone, timedelta
 import requests
 
 LEAGUE_ID = 970639
-# FIXED: Pointing directly to the official FPL API subdomain
-BASE = "https://premierleague.com"
-HEADERS = {"User-Agent": "Mozilla/5.0 (fpl-tracker-site-generator)"}
+# UPDATED: Routes calls via the designated data endpoint subdomain
+BASE = "https://fantasy.premierleague.com/api"
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 OUTPUT_PATH = "docs/index.html"
 
 
 def get_standings(league_id):
     entries, page, league_name = [], 1, ""
     while True:
-        # FIXED: Updated endpoint targeting raw JSON standings
+        url = f"{BASE}/leagues-classic/{league_id}/standings/"
+        print(f"Fetching standings from: {url} (Page {page})")
         resp = requests.get(
-            f"{BASE}/leagues-classic/{league_id}/standings/",
+            url,
             params={"page_standings": page},
             headers=HEADERS,
             timeout=20,
         )
-        resp.raise_for_status()
+        
+        if resp.status_code != 200:
+            print(f"ERROR: API returned status {resp.status_code}")
+            print(f"Response snippet: {resp.text[:300]}")
+            resp.raise_for_status()
+            
         data = resp.json()
         league_name = data["league"]["name"]
         entries.extend(data["standings"]["results"])
         if not data["standings"]["has_next"]:
             break
         page += 1
-        time.sleep(0.3)
+        time.sleep(0.5)
     return league_name, entries
 
 
 def get_history(entry_id):
-    # FIXED: Updated endpoint targeting raw JSON entry history
-    resp = requests.get(f"{BASE}/entry/{entry_id}/history/", headers=HEADERS, timeout=20)
+    url = f"{BASE}/entry/{entry_id}/history/"
+    resp = requests.get(url, headers=HEADERS, timeout=20)
     resp.raise_for_status()
     data = resp.json()
     
@@ -60,21 +67,24 @@ def fetch_all(league_id):
     managers, max_gw = [], 0
     for i, e in enumerate(entries):
         print(f"  {i + 1}/{len(entries)}: {e['player_name']}")
-        gw_data = get_history(e["entry"])
-        if gw_data:
-            max_gw = max(max_gw, max(gw_data.keys()))
-        managers.append({
-            "name": e["player_name"],
-            "team": e["entry_name"],
-            "official_total": e["total"],
-            "gw_data": gw_data,
-        })
-        time.sleep(0.3)
+        try:
+            gw_data = get_history(e["entry"])
+            if gw_data:
+                max_gw = max(max_gw, max(gw_data.keys()))
+            managers.append({
+                "name": e["player_name"],
+                "team": e["entry_name"],
+                "official_total": e["total"],
+                "gw_data": gw_data,
+            })
+        except Exception as err:
+            print(f"  Warning: Could not fetch history for manager {e['player_name']}: {err}")
+        time.sleep(0.5)
     return league_name, managers, max_gw
 
 
 def render_html(league_name, managers, max_gw, generated_at):
-    num_blocks = (max_gw + 3) // 4
+    num_blocks = (max_gw + 3) // 4 if max_gw > 0 else 1
 
     rows_computed = []
     for m in managers:
@@ -83,7 +93,7 @@ def render_html(league_name, managers, max_gw, generated_at):
         
         for b in range(num_blocks):
             start, end = b * 4 + 1, min(b * 4 + 4, max_gw)
-            sub = sum(m["gw_data"].get(gw, {}).get("net", 0) for gw in range(start, end + 1))
+            sub = sum(m["gw_data"].get(gw, {}).get("net", 0) for gw in range(start, end + 1)) if max_gw > 0 else 0
             block_subtotals.append(sub)
             calculated_running_net += sub
             
@@ -95,7 +105,7 @@ def render_html(league_name, managers, max_gw, generated_at):
             "mismatch": mismatch
         })
         
-    rows_computed.sort(key=lambda r: r["official_total"], reverse=True)
+    rows_computed.sort(key=lambda r: r["official_total"] if r["official_total"] is not None else 0, reverse=True)
 
     header_cells = ['<th class="name-cell">Manager</th>']
     for b in range(num_blocks):
@@ -116,7 +126,7 @@ def render_html(league_name, managers, max_gw, generated_at):
         for b in range(num_blocks):
             start, end = b * 4 + 1, min(b * 4 + 4, max_gw)
             for gw in range(start, end + 1):
-                gw_info = m["gw_data"].get(gw)
+                gw_info = m["gw_data"].get(gw) if max_gw > 0 else None
                 if gw_info:
                     net_val = gw_info["net"]
                     cost = gw_info["cost"]
@@ -127,21 +137,20 @@ def render_html(league_name, managers, max_gw, generated_at):
                 else:
                     val_str = "-"
                 cells.append(f"<td>{val_str}</td>")
-            cells.append(f'<td class="subtotal-col">{m["blocks"][b]}</td>')
+            cells.append(f'<td class="subtotal-col">{m["blocks"][b] if b < len(m["blocks"]) else 0}</td>')
             
         total_class = "total-col mismatch-alert" if m["mismatch"] else "total-col"
         cells.append(f'<td class="{total_class}">{m["official_total"]}</td>')
         body_rows.append(f"<tr{rank_class}>" + "".join(cells) + "</tr>")
 
-    # FIXED: Using the dynamically calculated SAST timestamp passed via main loop execution
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FUBAR FPL DOP TRACKER</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://googleapis.com">
+<link href="https://googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{{
     --turf-dark:#0f221a; --chalk:#F6F5F0; --chalk-dim:#D8DED8;
@@ -219,19 +228,10 @@ def render_html(league_name, managers, max_gw, generated_at):
 def main():
     print(f"Starting tracking collection for Classic League ID: {LEAGUE_ID}")
     
-    # Calculate live time in South Africa (UTC+2) dynamically
     sast_now = datetime.now(timezone.utc) + timedelta(hours=2)
     generated_at_str = sast_now.strftime("%Y-%m-%d %H:%M SAST")
     
-    league_name, managers, max_gw = fetch_all(LEAGUE_ID)
-    
-    html_content = render_html(league_name, managers, max_gw, generated_at_str)
-    
-    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
-        f.write(html_content)
+    try:
+        league_name, managers, max_gw = fetch_all(LEAGUE_ID)
+        html_content = render_html(league_name, managers, max_gw, generated_at_str)
         
-    print(f"Successfully generated static HTML documentation to {OUTPUT_PATH}!")
-
-
-if __name__ == "__main__":
-    main()
